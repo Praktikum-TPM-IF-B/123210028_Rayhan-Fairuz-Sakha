@@ -54,6 +54,9 @@ class LoginPage extends StatelessWidget {
                     labelText: "Username",
                     labelStyle: TextStyle(color: Colors.white)
                 ),
+                obscureText: true,
+                enableSuggestions: false,
+                autocorrect: false,
               ),
               SizedBox(height: 16.0),
               ElevatedButton(onPressed: (){},
