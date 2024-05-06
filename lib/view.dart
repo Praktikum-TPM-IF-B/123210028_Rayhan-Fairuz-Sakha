@@ -4,14 +4,14 @@ import 'package:httprequest/load_data_source.dart';
 import 'package:httprequest/posts_model.dart';
 
 
-class PageDetailCountries extends StatefulWidget {
-  const PageDetailCountries({Key? key}) : super(key: key);
+class PageDetailPosts extends StatefulWidget {
+  const PageDetailPosts({Key? key}) : super(key: key);
 
   @override
-  _PageDetailCountriesState createState() => _PageDetailCountriesState();
+  _PageDetailPostsState createState() => _PageDetailPostsState();
 }
 
-class _PageDetailCountriesState extends State<PageDetailCountries> {
+class _PageDetailPostsState extends State<PageDetailPosts> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,14 +62,14 @@ class _PageDetailCountriesState extends State<PageDetailCountries> {
 
   Widget _buildSuccessSection(PostsModel data) {
     return ListView.builder(
-      itemCount: data.?.length,
+      itemCount: data.posts?.length,
       itemBuilder: (BuildContext context, int index) {
-        return _buildItemCountries("${data.countries?[index].name}");
+        return _buildItemPosts("${data.posts?[index].id}");
       },
     );
   }
 
-  Widget _buildItemCountries(String value) {
+  Widget _buildItemPosts(String value) {
     return Text(value);
   }
 }
