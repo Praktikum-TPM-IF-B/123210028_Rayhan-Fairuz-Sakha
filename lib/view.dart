@@ -1,75 +1,96 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:httprequest/load_data_source.dart';
-import 'package:httprequest/posts_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-
-class PageDetailPosts extends StatefulWidget {
-  const PageDetailPosts({Key? key}) : super(key: key);
-
+class ViewPage extends StatefulWidget {
   @override
-  _PageDetailPostsState createState() => _PageDetailPostsState();
+  _ViewPageState createState() => _ViewPageState();
 }
 
-class _PageDetailPostsState extends State<PageDetailPosts> {
+class _ViewPageState extends State<ViewPage> {
+  late Future<List<PostsModel>> _futurePosts;
+
+  @override
+  void initState() {
+    super.initState();
+    _futurePosts = fetchPosts();
+  }
+
+  Future<List<PostsModel>> fetchPosts() async {
+    final response =
+        await http.get(Uri.parse('https://jsonplaceholder.typicode.com/posts'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> body = json.decode(response.body);
+      List<PostsModel> posts =
+          body.map((dynamic item) => PostsModel.fromJson(item)).toList();
+      return posts;
+    } else {
+      throw Exception('Failed to load posts');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Countries Detail"),
+        title: Text('Posts'),
       ),
-      body: _buildDetailPostsBody(),
-    );
-  }
-
-  Widget _buildDetailPostsBody() {
-    return Container(
-      child: FutureBuilder(
-        future: PostsDataSource.instance.loadPosts(),
-        builder: (
-            BuildContext context,
-            AsyncSnapshot<dynamic> snapshot,
-            ) {
-          if (snapshot.hasError) {
-            return _buildErrorSection();
-          }
-
+      body: FutureBuilder<List<PostsModel>>(
+        future: _futurePosts,
+        builder: (context, snapshot) {
           if (snapshot.hasData) {
-            PostsModel postsModel =
-            PostsModel.fromJson(snapshot.data);
-            return _buildSuccessSection(postsModel);
+            List<PostsModel>? posts = snapshot.data;
+            return ListView.builder(
+              itemCount: posts!.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  elevation: 4,
+                  child: ListTile(
+                    title: Text(posts[index].title!),
+                    subtitle: Text(posts[index].body!),
+                    onTap: () {
+                      // Handle onTap event here
+                    },
+                  ),
+                );
+              },
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
           }
 
-          return _buildLoadingSection();
+          return Center();
         },
       ),
     );
   }
+}
 
-  Widget _buildErrorSection() {
-    return Text("Error");
+class PostsModel {
+  int? userId;
+  int? id;
+  String? title;
+  String? body;
+
+  PostsModel({this.userId, this.id, this.title, this.body});
+
+  PostsModel.fromJson(Map<String, dynamic> json) {
+    userId = json['userId'];
+    id = json['id'];
+    title = json['title'];
+    body = json['body'];
   }
 
-  Widget _buildEmptySection() {
-    return Text("Empty");
-  }
-
-  Widget _buildLoadingSection() {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
-
-  Widget _buildSuccessSection(PostsModel data) {
-    return ListView.builder(
-      itemCount: data.posts?.length,
-      itemBuilder: (BuildContext context, int index) {
-        return _buildItemPosts("${data.posts?[index].id}");
-      },
-    );
-  }
-
-  Widget _buildItemPosts(String value) {
-    return Text(value);
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['userId'] = this.userId;
+    data['id'] = this.id;
+    data['title'] = this.title;
+    data['body'] = this.body;
+    return data;
   }
 }
